@@ -123,7 +123,9 @@ $no_hits = TRUE;
         'number' =>  array('data' => '#', 'class' => array('number')),
         'query' =>  array('data' => 'Query Name  (Click for alignment & visualization)', 'class' => array('query')),
         'hit' =>  array('data' => 'Target Name', 'class' => array('hit')),
+        'query_cover' =>  array('data' => 'Query Coverage', 'class' => array('query_cover')),
         'evalue' =>  array('data' => 'E-Value', 'class' => array('evalue')),
+        'identity' =>  array('data' => 'Percent Identity', 'class' => array('identity')),
       );
 
       $rows = array();
@@ -152,6 +154,9 @@ $no_hits = TRUE;
               // -- Save additional information needed for the summary.
               $score = (float) $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_score'};
               $evalue = (float) $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_evalue'};
+              $identity = (float) $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_identity'};
+              $align_len = (float) $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_align-len'};
+              $cover_len = (float) $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_query-to'} - (float) $hit->{'Hit_hsps'}->{'Hsp'}->{'Hsp_query-from'} + 1;
               $query_name = (string) $iteration->{'Iteration_query-def'};
 
               // If the id is of the form gnl|BL_ORD_ID|### then the parseids flag
@@ -172,6 +177,8 @@ $no_hits = TRUE;
               else {
                 $rounded_evalue = $evalue;
               }
+              $calc_identity = (string) round($identity/$align_len*100, 2, PHP_ROUND_HALF_EVEN) . '%';
+              $calc_cover = (string) round($cover_len/$query_size*100, 2, PHP_ROUND_HALF_EVEN) . '%';
 
               // State what should be in the summary row for theme_table() later.
               $summary_row = array(
@@ -180,7 +187,9 @@ $no_hits = TRUE;
                   'number' => array('data' => $count, 'class' => array('number')),
                   'query' => array('data' => $query_name, 'class' => array('query')),
                   'hit' => array('data' => $hit_name, 'class' => array('hit')),
-                  'evalue' => array('data' => $rounded_evalue, 'class' => array('evalue')),
+                  'query_cover' =>  array('data' => $calc_cover, 'class' => array('query_cover')),
+        		  'evalue' =>  array('data' => $rounded_evalue, 'class' => array('evalue')),
+        		  'identity' =>  array('data' => $calc_identity, 'class' => array('identity')),
                 ),
                 'class' => array('result-summary')
               );
@@ -278,6 +287,7 @@ $no_hits = TRUE;
                       'RegEx'      => $linkout_regex,
                     )
                   );
+                  $hit_name = preg_replace('/>.*<\/a>/', '>'.$hit->{'hit_name'}.'</a>', $hit_name);
                 }
 
                 // Replace the target name with the link.
